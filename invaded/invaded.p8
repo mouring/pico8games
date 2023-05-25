@@ -5,24 +5,14 @@ __lua__
 -- by mouring cat
 
 --todo
--- - hitting fire()
 -- - multiple weapons
 -- - secondary weapon
--- - animations
--- - background/stars
--- - better wave design
 -- - menu screen
--- - chip music
--- - user feedback
---   - hit / missing alien point counter
--- - shields
---   - animation hit
 -- - alt shields
 --   - lose -100 if hit by laser
 --   - lose -200 if hit ship
---next
--- - new wave system 
-
+-- - new wave system
+-- - background/stars
 
 function _init()
  newgame()
@@ -49,9 +39,10 @@ end
 
 function _draw()
  cls()
- spr(player.sprite,player.x,player.y)
+ draw_player()
  draw_lasers()
  draw_enemies()
+ draw_points()
  ui_overlay()
 end
 -->8
@@ -134,35 +125,69 @@ function do_wave(size)
  wave+=1
 end
 
-function delete_enemy(enemy)
- del(enemies,enemy)
- score+=enemy.points
+function draw_points()
+ for e in all(points) do
+  print(e.p, e.x, e.y)
+  if e.c==0 then 
+   del(points,e)
+  end
+  e.c-=1
+ end
+end
+
+function delete_enemy(e)
+ add(points, {
+  x=e.x,
+  y=e.y,
+  p="+"..e.points,
+  
+  c=10
+ }) 
+ del(enemies,e)
+ score+=e.points
  sfx(1)
 end
 
 function update_enemies()
- for enemy in all(enemies) do
-  if enemy.move then
-   move=enemy.move()
-   enemy.x+=move[1]
-   enemy.y+=move[2]
+ for e in all(enemies) do
+  if e.move then
+   move=e.move()
+   e.x+=move[1]
+   e.y+=move[2]
   else 
-    enemy.y+=enemy.s
+    e.y+=e.s
   end
-  enemy.shot-=1
+  e.shot-=1
 
-  if collision_test(player.x+4,player.y+4,enemy) then
-   dec_sheilds(enemies,enemy)
+  if collision_test(player.x+4,player.y+4,e) then
+   dec_sheilds(enemies,e)
   end
  
-  if enemy.y>128 then
-   del(enemies,enemy)
-   score-=enemy.fpoints
+  if e.y>128 then
+   add(points, {
+    x=e.x,
+    y=120,
+    p="-"..e.points,
+    c=10
+    })
+   del(enemies,e)
+   score-=e.fpoints
   end
 
-  if enemy.y<100 and enemy.shot<=0 then
-   fire(enemy.x,enemy.y,enemy.s+1,"enemy",enemy.wepcol)
-   enemy.shot=flr(rnd(10))+20
+  if e.x>128 then
+   add(points, {
+    x=110,
+    y=e.y,
+    p="-"..e.points,
+    c=10
+    })
+   del(enemies,e)
+   score-=e.fpoints
+  end
+
+  if e.y<100 and e.shot<=0 then
+   fire(e.x,e.y,e.s+1,"enemy",e.wepcol)
+   e.shot=flr(rnd(10))+20
   end
   
  end
@@ -245,7 +270,7 @@ end
 -->8
 -- player
 
-function update_player()
+function update_player()  
  if btn(⬅️) then
   player.x-=2
  end
@@ -276,12 +301,19 @@ function dec_sheilds(ps,p)
  end
  
  shields -=1
- if shields<=0 then
+ if shields<0 then
   game_over()
  end
  del(ps,p)
  sfx(4)
  immume=4
+end
+
+function draw_player()
+ if shields > 0 then
+  spr(shields+6,player.x,player.y-5)
+ end
+ spr(player.sprite,player.x,player.y)
 end
 -->8
 -- tools
@@ -304,6 +336,7 @@ function newgame()
   y=110,
   sprite=1
  }
+ points={}
  lasers={}
  enemies={}
  score=0
@@ -319,11 +352,11 @@ __gfx__
 00000000000000000000000000000000000000000066660000666600000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000600006006555560000000000000000000000000000000000000000000000000000000000000000000000000
 00700700000000000000000000000000000000006000000665555556000000000000000000000000000000000000000000000000000000000000000000000000
-000770000008800000099000000bb000000000006000000665555556000000000000000000000000000000000000000000000000000000000000000000000000
-00077000008888000099990000b44b00000880006000000665555556000000000000000000000000000000000000000000000000000000000000000000000000
-0070070000899800099aa9900b4aa4b0008228000600006006555560000000000000000000000000000000000000000000000000000000000000000000000000
-000000000889988099aaaa990baaaab0022aa2200060060000655600000000000000000000000000000000000000000000000000000000000000000000000000
-0000000088888888999aa99900baab00222222220006600000066000000000000000000000000000000000000000000000000000000000000000000000000000
+000770000008800000099000000bb0000000000060000006655555560000000000000000000aa000000000000000000000000000000000000000000000000000
+00077000008888000099990000b44b00000880006000000665555556000000000009900000a99a00000000000000000000000000000000000000000000000000
+0070070000899800099aa9900b4aa4b0008228000600006006555560000aa000009aa9000a9aa9a0000000000000000000000000000000000000000000000000
+000000000889988099aaaa990baaaab0022aa220006006000065560000a00a0009a00a90a9a00a9a000000000000000000000000000000000000000000000000
+0000000088888888999aa99900baab002222222200066000000660000a0000a09a0000a99a0000a9000000000000000000000000000000000000000000000000
 __label__
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
