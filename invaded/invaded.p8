@@ -5,12 +5,7 @@ __lua__
 -- by mouring cat
 
 --todo
--- - multiple weapons
--- - secondary weapon
 -- - menu screen
--- - alt shields
---   - lose -100 if hit by laser
---   - lose -200 if hit ship
 -- - new wave system
 -- - background/stars
 
@@ -189,13 +184,12 @@ function update_enemies()
    fire(e.x,e.y,e.s+1,"enemy",e.wepcol)
    e.shot=flr(rnd(10))+20
   end
-  
  end
 end
 
 function draw_enemies()
- for enemy in all(enemies) do
-  spr(enemy.sprite,enemy.x,enemy.y)
+ for e in all(enemies) do
+  spr(e.sprite,e.x,e.y)
  end
 end
 -->8
@@ -236,26 +230,26 @@ function fire(x,y,s,dir,wepcol)
 end
 
 function update_lasers()
- for laser in all(lasers) do
-  if laser.dir=="player" then
-   laser.y-=laser.s
-  elseif laser.dir=="enemy" then
-   laser.y+=laser.s
+ for l in all(lasers) do
+  if l.dir=="player" then
+   l.y-=l.s
+  elseif l.dir=="enemy" then
+   l.y+=l.s
   end
-  if laser.y<0 or laser.y>128 then
-   del(lasers,laser)
+  if l.y<0 or l.y>128 then
+   del(lasers,l)
   end
 
-  if laser.dir=="enemy" then
-   if collision_test(laser.x,laser.y,player) then
-    dec_sheilds(lasers,laser)
+  if l.dir=="enemy" then
+   if collision_test(l.x,l.y,player) then
+    dec_sheilds(lasers,l)
    end
   end
-  if laser.dir=="player" then
-   for enemy in all(enemies) do
-    if collision_test(laser.x,laser.y,enemy) then
-     delete_enemy(enemy)
-     del(lasers,laser)
+  if l.dir=="player" then
+   for e in all(enemies) do
+    if collision_test(l.x,l.y,e) then
+     delete_enemy(e)
+     del(lasers,l)
     end
    end
   end
@@ -263,8 +257,8 @@ function update_lasers()
 end
 
 function draw_lasers()
- for laser in all(lasers) do
-  rect(laser.x,laser.y,laser.x+2,laser.y+1,laser.wepcol)
+ for l in all(lasers) do
+  rect(l.x,l.y,l.x+2,l.y+1,l.wepcol)
  end
 end
 -->8
