@@ -7,7 +7,6 @@ __lua__
 --todo
 -- - menu screen
 -- - new wave system
--- - background/stars
 
 function _init()
  newgame()
@@ -18,6 +17,7 @@ function _update()
   return
  end
  
+ update_stars()
  update_player()
  update_lasers()
  update_enemies()
@@ -34,6 +34,7 @@ end
 
 function _draw()
  cls()
+ draw_starfield()
  draw_player()
  draw_lasers()
  draw_enemies()
@@ -341,6 +342,42 @@ function newgame()
  wavetimer=90
  waveintensity=5
  wave=0
+ init_stars()
+end
+
+function draw_starfield()
+ for i=1,#stars do
+  local ms=stars[i]
+  local scol=6
+  
+  if ms.spd<1 then
+   scol=1
+  elseif ms.spd<1.5 then
+   scol=13
+  end
+  pset(ms.x,ms.y,scol)
+ end
+end
+
+function init_stars()
+ stars={} 
+ for i=1,50 do
+  add(stars,{
+   x=flr(rnd(128)),
+   y=flr(rnd(128)),
+   spd=rnd(1.5)+0.5
+  })
+ end 
+end
+
+function update_stars()
+ for i=1,#stars do
+  local ms=stars[i]
+  ms.y+=ms.spd
+  if ms.y>128 then
+   ms.y-=128
+  end
+ end
 end
 __gfx__
 00000000000000000000000000000000000000000066660000666600000000000000000000000000000000000000000000000000000000000000000000000000
