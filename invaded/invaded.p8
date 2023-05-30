@@ -17,6 +17,13 @@ function upd_game()
  if #enemies == 0 then
   wave+=1
  	do_wave(wave)
+ 	if wave != 1 and wave%5 == 1 then
+ 	 mute()
+ 	 say("_/y/-1.26/uw/-1.67/_/k/-1.18/ae/-1.06/n/-1.13/n/-1.30/aa/-1.69/_/t/-1.22/hh/-1.27/3/ow/-1.12/l/-1.72/_/d/-1.10/aw/-1.69/_/t/-1.15/f/-1.54/er/-1.39/3/eh/-1.05/-3/v/-1.18/-3/er")
+ 	elseif wave > 2 then
+ 	 mute()
+ 	 say("_/n/-1.26/3/uw/-1.03/-3/w/1.79/-3/ey/1.07/-3/v")
+ 	end  
  end
 end
 
