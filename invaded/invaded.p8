@@ -380,7 +380,7 @@ function collision_test(x,y,p)
  if x>=p.x and
     x<=p.x+8 and
     y>=p.y and
-    y<=p.y+8 the
+    y<=p.y+8 then
   return true
  end
  return false
