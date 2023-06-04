@@ -377,10 +377,10 @@ end
 -- tools
 
 function collision_test(x,y,p)
- if x>=p.x and 
-    x<=p.x+8 and 
-    y>=p.y and 
-    y<=p.y+8 then
+ if x>=p.x and
+    x<=p.x+8 and
+    y>=p.y and
+    y<=p.y+8 the
   return true
  end
  return false
@@ -416,6 +416,7 @@ function newgame()
  gundelay=0
 end
 
+-- starfield code inspired by lazydev
 function draw_starfield()
  for i=1,#stars do
   local ms=stars[i]
@@ -451,6 +452,7 @@ function update_stars()
  end
 end
 
+-- drawing window code by lazy dev
 function drawind()
  for w in all(wind) do
   local wx,wy,ww,wh=w.x,w.y,w.w,w.h
