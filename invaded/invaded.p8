@@ -3,27 +3,36 @@ version 41
 __lua__
 -- invaded game
 -- by mouring cat
-
---todo
--- - new wave system
-
+   
 function upd_game() 
  update_player()
- 
- if score<=-200 then
-   game_over()
- end
- 
- if #enemies == 0 then
-  wave+=1
- 	do_wave(wave)
- 	if wave != 1 and wave%5 == 1 then
- 	 mute()
- 	 say("_/y/-1.26/uw/-1.67/_/k/-1.18/ae/-1.06/n/-1.13/n/-1.30/aa/-1.69/_/t/-1.22/hh/-1.27/3/ow/-1.12/l/-1.72/_/d/-1.10/aw/-1.69/_/t/-1.15/f/-1.54/er/-1.39/3/eh/-1.05/-3/v/-1.18/-3/er")
- 	elseif wave > 2 then
- 	 mute()
- 	 say("_/n/-1.26/3/uw/-1.03/-3/w/1.79/-3/ey/1.07/-3/v")
- 	end  
+
+ if #enemies == 0 then 
+  if delay > 0 then
+   delay-=1
+  else
+   do_wave(wave)
+   delay=50
+   if not start then
+    mute()
+    if wave%(#wave_set) == 0 then
+     -- we shall take over the earth
+     say("_/y/-1.26/uw/-1.67/_/k/-1.18/ae/-1.06/n/-1.13/n/-1.30/aa/-1.69/_/t/-1.22/hh/-1.27/3/ow/-1.12/l/-1.72/_/d/-1.10/aw/-1.69/_/t/-1.15/f/-1.54/er/-1.39/3/eh/-1.05/-3/v/-1.18/-3/er")
+    else
+     -- new wave
+     say("_/n/-1.26/3/uw/-1.03/-3/w/1.79/-3/ey/1.07/-3/v")
+    end
+   else
+    -- we shall take over the earth
+    mute()
+    say("_/w/-1.25/iy/sh/-1.29/ae/-1.07/l/-1.71/_/t/-1.15/3/ey/-1.68/_/k/-1.23/ow/-1.05/v/-1.55/er/dh/-1.47/ah/-1.01/-3/er/1.13/-3/th")
+   end
+   if not start then
+   	wave+=1
+   else
+    start=false
+   end
+  end
  end
 end
 
@@ -47,9 +56,6 @@ function upd_gameover()
   _drw=drw_game
   newgame()
   mainmenu=false
-  -- we shall take over the earth
-  mute()
-  say("_/w/-1.25/iy/sh/-1.29/ae/-1.07/l/-1.71/_/t/-1.15/3/ey/-1.68/_/k/-1.23/ow/-1.05/v/-1.55/er/dh/-1.47/ah/-1.01/-3/er/1.13/-3/th")
  end
 end
 
@@ -76,6 +82,16 @@ function _init()
  _upd=upd_gameover
  _drw=drw_gameover
  wind={}
+ wave_set={
+  {1,1,0}, -- 2
+  {2,2,0}, -- 4
+  {2,2,2}, -- 6
+  {4,2,2}, -- 8
+  {4,3,3}, -- 10
+  {5,5,2}, -- 12
+  {6,5,3}  -- 14
+ }
+ wp=0
 end
 
 function _update()
@@ -102,73 +118,114 @@ function create_enemy(x,y,t)
   add(enemies,{
    x=x,
    y=y,
-   s=rnd(1)+1,
+   by=rnd(50)+50,
    shot=flr(rnd(10))+20,
    sprite=2,
    wepcol=9,
-   points=100,
-   fpoints=25
+   move=_1_move,
+   points=100
   })
  elseif t==2 then
   add(enemies,{
    x=x,
    y=y,
-   s=rnd(2)+1,
+   by=rnd(80)+20,
    shot=flr(rnd(10))+20,
    sprite=3,
    wepcol=11,
    move=_2_move,
-   points=125,
-   fpoints=50
+   points=125
   })
  elseif t==3 then
   add(enemies,{
    x=x,
    y=y,
-   s=rnd(2)+1,
    shot=flr(rnd(10))+20,
    sprite=4,
    wepcol=2,
    move=_3_move,
-   points=500,
-   fpoints=0
+   points=500
   })
  end
 end
 
-function _2_move()
+function move_bounce_y(self,y,ly)
+ if self.y < ly then
+  self.up=false
+  self.by=rnd(50)+50
+  self.y+=y
+ elseif self.up then
+  self.y-=y
+ elseif self.y > self.by then
+  self.y-=y
+  self.up=true
+ else
+  self.y+=y
+ end
+end
+
+function move_bounce_x(self,x)
+ if self.x < 5 then
+  self.x+=x
+  self.left=true
+ elseif self.x > 120 then
+  self.x-=x
+  self.left=false
+ elseif self.left then
+  self.x+=x
+ else
+  self.x-=x
+ end
+end
+
+function move_loop_x(self,x)
+  if self.x > 128 then
+   self.x=-10
+   self.y=flr(rnd(20))+8
+  else
+   self.x+=x
+  end
+end
+
+function _1_move(self)
+ move_bounce_y(self,rnd(2)+1,-20)
+end
+
+function _2_move(self)
  local pos=1
  if flr(rnd())>=0.2 then
    pos=-1
  end
- return {
- 	pos*flr(rnd(2)),
-  flr(rnd(3))+1
-  }
+ move_bounce_y(self,rnd(3)+1,5)
+ move_bounce_x(self,pos*flr(rnd(2)))
 end
 
-function _3_move()
- return {
- 	flr(rnd(3))+1,
-  0
-  }
+function _3_move(self)
+ move_loop_x(self,flr(rnd(3))+1)
 end
 
 function do_wave()
- local size = rnd(6)+wave
- for i=1,size do
-  local t=rnd()
-  if t>=.9 then
-   t=1
-   y=0
-  elseif t>=.2 then
-   t=2
-   y=0
-  else
-   t=3
-   y=flr(rnd(20))+20
-  end
-  create_enemy(rnd(124),y,t)
+ local w=wave%#wave_set
+ local c=wave\#wave_set+1
+ -- hacks
+ if not start then
+  w+=1
+ end
+ if w == 0 then
+  w=#wave_set
+  c-=1
+ end
+
+ local wave_amt = wave_set[w]
+
+ for e=1,wave_amt[1]*c do
+  create_enemy(rnd(124),0,1)
+ end
+ for e=1,wave_amt[2]*c do
+  create_enemy(rnd(124),0,2)
+ end
+ for e=1,wave_amt[3]*c do
+  create_enemy(-10,flr(rnd(20))+20,3)
  end
 end
 
@@ -183,66 +240,28 @@ function draw_points()
 end
 
 function delete_enemy(e)
- p={
+ del(enemies,e)
+ score+=e.points
+ add(points, {
   x=e.x,
   y=e.y,
   p="+"..e.points,
-  
   c=10
- }
- del(enemies,e)
- if not mainmenu then
-  score+=e.points
-  add(points, p)
-  sfx(1)
- end
+  })
+ sfx(1)
 end
 
 function update_enemies()
  for e in all(enemies) do
-  if e.move then
-   move=e.move()
-   e.x+=move[1]
-   e.y+=move[2]
-  else 
-    e.y+=e.s
-  end
+  e:move()
   e.shot-=1
 
   if collision_test(player.x+4,player.y+4,e) then
    dec_sheilds(enemies,e)
   end
- 
-  if e.y>128 then
-   p={
-    x=e.x,
-    y=120,
-    p="-"..e.points,
-    c=10
-    }
-   del(enemies,e)
-   if not mainmenu then
-    score-=e.fpoints
-    add(points,p)
-   end
-  end
-
-  if e.x>128 then
-  p={
-    x=110,
-    y=e.y,
-    p="-"..e.points,
-    c=10
-    }
-   del(enemies,e)
-   if not mainmenu then
-    score-=e.fpoints
-    add(points, p)
-   end
-  end
 
   if e.y<100 and e.shot<=0 then
-   fire(e.x,e.y,e.s+1,"enemy",e.wepcol)
+   fire(e.x,e.y,rnd(2)+2,"enemy",e.wepcol)
    e.shot=flr(rnd(10))+20
   end
  end
@@ -259,6 +278,7 @@ end
 function ui_overlay()
  print('score: '..score,2,2,7)
  print('wave: '..wave,60,2,7)
+
  for i=1,3 do
   local sp=5
   if i<=shields then
@@ -290,25 +310,20 @@ function update_lasers()
  for l in all(lasers) do
   if l.dir=="player" then
    l.y-=l.s
-  elseif l.dir=="enemy" then
-   l.y+=l.s
-  end
-  if l.y<0 or l.y>128 then
-   del(lasers,l)
-  end
-
-  if l.dir=="enemy" then
-   if collision_test(l.x,l.y,player) then
-    dec_sheilds(lasers,l)
-   end
-  end
-  if l.dir=="player" then
    for e in all(enemies) do
     if collision_test(l.x,l.y,e) then
      delete_enemy(e)
      del(lasers,l)
     end
    end
+  elseif l.dir=="enemy" then
+   l.y+=l.s
+   if collision_test(l.x,l.y,player) then
+    dec_sheilds(lasers,l)
+   end
+  end
+  if l.y<0 or l.y>128 then
+   del(lasers,l)
   end
  end
 end
@@ -399,9 +414,10 @@ function newgame()
  score=0
  shields=3
  immume=0
-
- wave=0
+ start=true
+ wave=1
  init_stars()
+ delay=20
 end
 
 function draw_starfield()
