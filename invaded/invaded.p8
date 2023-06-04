@@ -3,7 +3,7 @@ version 41
 __lua__
 -- invaded game
 -- by mouring cat
-   
+
 function upd_game() 
  update_player()
 
@@ -228,6 +228,7 @@ end
 
 function draw_points()
  for e in all(points) do
+  print(e.p, e.x, e.y)
   if e.c==0 then 
    del(points,e)
   end
@@ -302,7 +303,7 @@ end
 function update_lasers()
  for l in all(lasers) do
   if l.dir=="player" then
-   l.y-=l.s
+   l.y-=l.s+1
    for e in all(enemies) do
     if collision_test(l.x,l.y,e) then
      delete_enemy(e)
@@ -315,7 +316,7 @@ function update_lasers()
     dec_sheilds(lasers,l)
    end
   end
-  if l.y<0 or l.y>128 then
+  if l.y<8 or l.y>128 then
    del(lasers,l)
   end
  end
@@ -330,6 +331,7 @@ end
 -- player
 
 function update_player()
+ gundelay-=1
  if btn(⬅️) then
   player.x-=2
  end
@@ -342,8 +344,9 @@ function update_player()
  if btn(⬇️) then
   player.y+=2
  end
- if btnp(❎) then
-  fire(player.x+3,player.y+3,3,"player",8)
+ if gundelay<=0 and btnp(❎) then
+   fire(player.x+3,player.y+3,3,"player",8)
+   gundelay=8
  end
  player.x=mid(0,player.x,120)
  player.y=mid(0,player.y,120)
@@ -374,7 +377,10 @@ end
 -- tools
 
 function collision_test(x,y,p)
- if x>=p.x and x<=p.x+8 and y>=p.y and y<=p.y+8 then
+ if x>=p.x and 
+    x<=p.x+8 and 
+    y>=p.y and 
+    y<=p.y+8 then
   return true
  end
  return false
@@ -407,6 +413,7 @@ function newgame()
  wave=1
  init_stars()
  delay=20
+ gundelay=0
 end
 
 function draw_starfield()
