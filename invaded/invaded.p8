@@ -7,15 +7,15 @@ __lua__
 function upd_game() 
  update_player()
 
- if #enemies == 0 then 
-  if delay > 0 then
+ if #enemies==0 then 
+  if delay>0 then
    delay-=1
   else
    do_wave(wave)
    delay=50
    if not start then
     mute()
-    if wave%(#wave_set) == 0 then
+    if wave%(#wave_set)==0 then
      -- we shall take over the earth
      say("_/y/-1.26/uw/-1.67/_/k/-1.18/ae/-1.06/n/-1.13/n/-1.30/aa/-1.69/_/t/-1.22/hh/-1.27/3/ow/-1.12/l/-1.72/_/d/-1.10/aw/-1.69/_/t/-1.15/f/-1.54/er/-1.39/3/eh/-1.05/-3/v/-1.18/-3/er")
     else
@@ -47,8 +47,8 @@ function upd_gameover()
  player.y=-100
  init_gameover()
 
- if #enemies == 0 then
- 	do_wave(wave)
+ if #enemies==0 then
+  do_wave(wave)
  end
 
  if btnp(🅾️) then
@@ -91,7 +91,6 @@ function _init()
   {5,5,2}, -- 12
   {6,5,3}  -- 14
  }
- wp=0
 end
 
 function _update()
@@ -150,13 +149,13 @@ function create_enemy(x,y,t)
 end
 
 function move_bounce_y(self,y,ly)
- if self.y < ly then
+ if self.y<ly then
   self.up=false
   self.by=rnd(50)+50
   self.y+=y
  elseif self.up then
   self.y-=y
- elseif self.y > self.by then
+ elseif self.y>self.by then
   self.y-=y
   self.up=true
  else
@@ -165,10 +164,10 @@ function move_bounce_y(self,y,ly)
 end
 
 function move_bounce_x(self,x)
- if self.x < 5 then
+ if self.x<5 then
   self.x+=x
   self.left=true
- elseif self.x > 120 then
+ elseif self.x>120 then
   self.x-=x
   self.left=false
  elseif self.left then
@@ -179,7 +178,7 @@ function move_bounce_x(self,x)
 end
 
 function move_loop_x(self,x)
-  if self.x > 128 then
+  if self.x>128 then
    self.x=-10
    self.y=flr(rnd(20))+8
   else
@@ -211,27 +210,24 @@ function do_wave()
  if not start then
   w+=1
  end
- if w == 0 then
+ if w==0 then
   w=#wave_set
   c-=1
  end
 
- local wave_amt = wave_set[w]
-
- for e=1,wave_amt[1]*c do
+ for e=1,wave_set[w][1]*c do
   create_enemy(rnd(124),0,1)
  end
- for e=1,wave_amt[2]*c do
+ for e=1,wave_set[w][2]*c do
   create_enemy(rnd(124),0,2)
  end
- for e=1,wave_amt[3]*c do
+ for e=1,wave_set[w][3]*c do
   create_enemy(-10,flr(rnd(20))+20,3)
  end
 end
 
 function draw_points()
  for e in all(points) do
-  print(e.p, e.x, e.y)
   if e.c==0 then 
    del(points,e)
   end
@@ -242,7 +238,7 @@ end
 function delete_enemy(e)
  del(enemies,e)
  score+=e.points
- add(points, {
+ add(points,{
   x=e.x,
   y=e.y,
   p="+"..e.points,
@@ -255,11 +251,9 @@ function update_enemies()
  for e in all(enemies) do
   e:move()
   e.shot-=1
-
   if collision_test(player.x+4,player.y+4,e) then
    dec_sheilds(enemies,e)
   end
-
   if e.y<100 and e.shot<=0 then
    fire(e.x,e.y,rnd(2)+2,"enemy",e.wepcol)
    e.shot=flr(rnd(10))+20
@@ -278,7 +272,6 @@ end
 function ui_overlay()
  print('score: '..score,2,2,7)
  print('wave: '..wave,60,2,7)
-
  for i=1,3 do
   local sp=5
   if i<=shields then
@@ -336,7 +329,7 @@ end
 -->8
 -- player
 
-function update_player()  
+function update_player()
  if btn(⬅️) then
   player.x-=2
  end
@@ -352,31 +345,27 @@ function update_player()
  if btnp(❎) then
   fire(player.x+3,player.y+3,3,"player",8)
  end
-  
  player.x=mid(0,player.x,120)
  player.y=mid(0,player.y,120)
- 
  if immume>0 then
-  immume -=1
+  immume-=1
  end
 end
 
 function dec_sheilds(ps,p)
- if immume>0 then
-  return
+ if immume==0 then
+  shields-=1
+  if shields<0 then
+   game_over()
+  end
+  del(ps,p)
+  sfx(4)
+  immume=4
  end
- 
- shields -=1
- if shields<0 then
-  game_over()
- end
- del(ps,p)
- sfx(4)
- immume=4
 end
 
 function draw_player()
- if shields > 0 then
+ if shields>0 then
   spr(shields+6,player.x,player.y-5)
  end
  spr(player.sprite,player.x,player.y)
@@ -478,7 +467,6 @@ function drawind()
    wy+=6
   end
   clip()
- 
   if w.dur then
    w.dur-=1
    if w.dur<=0 then
@@ -494,17 +482,18 @@ function drawind()
 end
 
 function addwind(_x,_y,_w,_h,_txt)
- local w={x=_x,
-          y=_y,
-          w=_w,
-          h=_h,
-          txt=_txt}
+ local w={
+  x=_x,
+  y=_y,
+  w=_w,
+  h=_h,
+  txt=_txt
+ }
  add(wind,w)
  return w
 end
 
 function rectfill2(_x,_y,_w,_h,_c)
- --★
  rectfill(_x,_y,_x+max(_w-1,0),_y+max(_h-1,0),_c)
 end
 
